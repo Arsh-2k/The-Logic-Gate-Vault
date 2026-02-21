@@ -24,19 +24,19 @@
 
 ## ✨ Features
 
-### Phase 1: Logic Engine ✅
-- [x] Custom XOR encryption implementation
-- [x] Rolling key mechanism using modulo operations
-- [x] Text file encryption/decryption
-- [x] Console-based interface
+### Phase 1: Logic Engine
+- [ ] Custom XOR encryption implementation
+- [ ] Rolling key mechanism using modulo operations
+- [ ] Text file encryption/decryption
+- [ ] Console-based interface
 
-### Phase 2: Cryptographic Engine 🚧
+### Phase 2: Cryptographic Engine
 - [ ] AES-256 standard encryption integration
 - [ ] Binary file support (.xlsx, .docx, .pdf)
 - [ ] Secure key generation and management
 - [ ] Enhanced GUI with tabbed interface
 
-### Phase 3: Cloud & Concurrency 📅
+### Phase 3: Cloud & Concurrency
 - [ ] Asynchronous cloud synchronization
 - [ ] Multi-threaded encryption operations
 - [ ] Forensic audit logging system
@@ -206,7 +206,7 @@ encryptedChar = originalChar XOR key[i % keyLength]
 - Rolling key mechanism
 - Educational demonstration of bitwise operations
 
-### AES-256 (Phase 2) 🚧
+### AES-256 (Phase 2)
 ```java
 // Industry-standard encryption
 Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -283,11 +283,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📅 Project Development Phases
 
-| Phase |
-|-------|
-| **Phase 1: Logic Engine** | 
-| **Phase 2: Cryptographic Engine** | 
-| **Phase 3: Cloud & Concurrency** | 
+- **Phase 1: Logic Engine** - XOR encryption and basic file operations
+- **Phase 2: Cryptographic Engine** - AES-256 and binary file support
+- **Phase 3: Cloud & Concurrency** - Multi-threading and cloud sync
+
+---
+
+## 📞 Support
+
+For questions or support:
+- Contact via university email: S25CSEU0980@bennett.edu.in
+- Refer to documentation in `/docs` folder
 
 ---
 
