@@ -14,7 +14,7 @@
  ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝      ╚═══╝  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝
 
   Team V8 Logic Systems  |  Arshpreet Singh  |  Roll No: S25CSEU0980
-  Course: 2025CSET152 — OOP in Java  |  Bennett University  |  2026
+  Course: 2025CSET152 — OOP in Java  |  Batch 33  |  Bennett University
   GitHub: github.com/Arsh-2k/The-Logic-Gate-Vault
 ```
 
@@ -22,9 +22,15 @@
 
 ## Overview
 
-**The Logic-Gate Vault** is a Java 21 Swing desktop application for secure file encryption. It implements a dual-cipher engine (AES-256 and XOR), role-based access control, cryptographic Key Escrow, a persistent audit trail, and an optional Google Drive sync module — structured around a four-process Data Flow Diagram architecture.
-
+**The Logic-Gate Vault** is a Java 21 Swing desktop application for secure file encryption. It implements a dual-cipher engine (AES-256 and XOR), role-based access control (RBAC), cryptographic Key Escrow, a thread-safe persistent audit trail, and an optional Google Drive sync module — structured around a strict four-process Data Flow Diagram (DFD) architecture.
 ---
+## System Specifications & Limits
+
+Supported Formats: Universal byte-level support. Works with ALL file types (e.g., .txt, .pdf, .docx, .mp4, .zip, .exe, .jpg).
+
+File Size Limit: ~256 MB per file (processed safely in-memory). Files exceeding this limit will trigger a graceful "Out of Memory" fallback warning rather than crashing the application.
+
+Concurrency: Fully thread-safe background processing using SwingWorker, keeping the UI responsive during heavy batch encryptions.
 
 ## Quick Start
 
@@ -36,10 +42,10 @@
 Open a terminal in the project root folder:
 
 ```bash
-javac -d out src\*.java
+javac -encoding UTF-8 -d out src\*.java
 ```
 
-*(macOS/Linux: use forward slashes — `javac -d out src/*.java`)*
+*(macOS/Linux: use forward slashes — `javac -encoding UTF-8 -d out src/*.java`)*
 
 ### 2 — Run
 ```bash
@@ -93,7 +99,7 @@ The-Logic-Gate-Vault/
 ## DFD Architecture (P1 – P4)
 
 ```
-                        ┌─────────────────────────────────────┐
+┌─────────────────────────────────────┐
    USER                 │      LOGIC-GATE VAULT SYSTEM        │
   (File +   ──────────▶ │                                     │ ──▶  Encrypted .enc
   Password)             │  ┌────┐  ┌────┐  ┌────┐  ┌────┐   │ ──▶  Activity Log
@@ -108,8 +114,8 @@ The-Logic-Gate-Vault/
                                               .log
 ```
 
-### P1 — Authentication (`AuthManager.java` → D1 `data/users.dat`)
-Verifies credentials using `PBKDF2WithHmacSHA256` (65,536 iterations, 16-byte salt). Implements two RBAC roles: `ADMIN` and `USER`. Session enforced with a 15-minute `ScheduledExecutorService` inactivity timeout.
+### P1 — Authentication (AuthManager.java → D1 data/users.dat)
+Verifies credentials using PBKDF2WithHmacSHA256 (65,536 iterations, 16-byte salt). Implements two RBAC roles: ADMIN and USER. Accounts are safely serialized. Sessions are strictly enforced with a 15-minute inactivity timeout.
 
 ### P2 — Encrypt/Decrypt (`AESEngine.java`, `XOREngine.java`, `FileOrchestrator.java` → D2 `data/admin.cfg`)
 Dual-algorithm engine supporting:
@@ -122,7 +128,7 @@ Key Escrow: the session key is AES-wrapped with the admin's master key and store
 Thread-safe Singleton (double-checked locking). Appends timestamped entries with username, operation type, algorithm, file size, and duration. Persists across JVM restarts.
 
 ### P4 — Cloud Sync (`CloudSyncManager.java` → D4 `data/.vault`)
-Mock implementation of zero-knowledge Google Drive upload. Only `.enc` files may be uploaded (plaintext is rejected by guard). FileId mappings persisted to `data/.vault` as a Java Properties file. Phase 2 will replace the mock with the `google-api-services-drive-v3` Maven artifact.
+Functional UI mock implementation of a zero-knowledge Google Drive upload. Only .enc files may be uploaded (plaintext is rejected). FileId mappings are persisted to data/.vault as a Java Properties file. (Phase 2 will integrate the Google Drive REST API v3).
 
 ---
 
@@ -157,14 +163,14 @@ Bytes 32+   : XOR ciphertext
 
 ## How to Use
 
-1. **Login** — Enter credentials in the login dialog
-2. **Encrypt** — Browse → select algorithm → enter strong password → click ENCRYPT
-3. **Decrypt** — Browse `.enc` file → same algorithm + password → click DECRYPT
-4. **Batch** — Add Files → password → Batch Encrypt (progress bar updates in real time)
-5. **Key Escrow** *(admin only)* — Select `.enc` → Key Escrow Recovery → decrypts without user password
-6. **Clear Log** *(admin only)* — Wipes `logs/activity.log`
+1. **Login** — Enter credentials in the login dialog. Use the new "Show" toggle to verify your password.
+2. **Encrypt** — Browse → select algorithm → enter strong password → click ENCRYPT. The original file is deleted and replaced with a .enc file.
+3. **Decrypt** — Browse a .enc file → select the SAME algorithm → enter the SAME password → click DECRYPT.
+4. **Batch** — Click 'Add Files' → enter password → 'Batch Encrypt'. Runs safely in the background while the UI remains live.
+5. **Key Escrow** Select a .enc file → 'Sync to Drive' (simulated demo). A WIP transparency notice will appear.
+6. **Clear Log** (Admin only) — Access the live "Monitoring Console", use 'Key Escrow Recovery' to decrypt without user passwords, or 'Clear Activity Log'.
 
-**Password strength rules:** 8+ characters AND at least one special character (`@`, `#`, `$`, `!`, etc.)
+**Password strength rules:** A STRONG password requires 8+ characters, at least one special character (@, #, $, !, etc.), AND at least one digit (0-9).
 
 ---
 
