@@ -720,19 +720,22 @@ public class MainApp {
         panel.add(batchScroll);
         panel.add(vGap(5));
 
-        JPanel batchBtnRow = new JPanel(new GridLayout(1, 3, 5, 0));
+        JPanel batchBtnRow = new JPanel(new GridLayout(1, 4, 5, 0));
         batchBtnRow.setBackground(BG_PANEL);
         batchBtnRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         batchBtnRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JButton addBtn   = makeButton("Add Files",     CLR_CYAN);
-        JButton batchBtn = makeButton("Batch Encrypt", CLR_ORANGE);
-        JButton clearBtn = makeButton("Clear",         CLR_RED);
-        addBtn.addActionListener(e ->   { resetSessionTimer(); addFilesToBatch(); });
-        batchBtn.addActionListener(e -> { resetSessionTimer(); handleBatchEncrypt(); });
+        JButton addBtn      = makeButton("Add Files",     CLR_CYAN);
+        JButton batchBtn    = makeButton("Batch Encrypt", CLR_ORANGE);
+        JButton batchDecBtn = makeButton("Batch Decrypt", CLR_PURPLE);
+        JButton clearBtn    = makeButton("Clear",         CLR_RED);
+        addBtn.addActionListener(e ->      { resetSessionTimer(); addFilesToBatch(); });
+        batchBtn.addActionListener(e ->    { resetSessionTimer(); handleBatchEncrypt(); });
+        batchDecBtn.addActionListener(e -> { resetSessionTimer(); handleBatchDecrypt(); });
         clearBtn.addActionListener(e -> {
             resetSessionTimer(); batchFiles.clear(); batchListModel.clear(); });
         batchBtnRow.add(addBtn);
         batchBtnRow.add(batchBtn);
+        batchBtnRow.add(batchDecBtn);
         batchBtnRow.add(clearBtn);
         panel.add(batchBtnRow);
         panel.add(vGap(12));
@@ -1187,8 +1190,10 @@ public class MainApp {
         progressBar.setValue(0); progressBar.setString("Batch: 0%");
         statusLabel.setText("Batch encrypting " + batchFiles.size() + " files...");
 
+        // isEncrypt = true — BatchProcessor calls orchestrateEncrypt() per file
         BatchProcessor processor = new BatchProcessor(
-            new ArrayList<>(batchFiles), password, algo, progressBar, logTextArea, currentUser);
+            new ArrayList<>(batchFiles), password, algo, progressBar, logTextArea,
+            currentUser, true);
         processor.addPropertyChangeListener(evt -> {
             if ("state".equals(evt.getPropertyName())
                     && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
@@ -1199,6 +1204,58 @@ public class MainApp {
         });
         processor.execute();
         passwordField.setText(""); // clear from UI immediately — BatchProcessor owns char[]
+    }
+
+    private void handleBatchDecrypt() {
+        // Validation: at least one file must be queued
+        if (batchFiles.isEmpty()) {
+            showWarning("No files queued.\nClick 'Add Files' and select .enc files to decrypt.");
+            return;
+        }
+
+        // Warn (but do not block) if any queued file is not a .enc file.
+        // orchestrateDecrypt() will skip non-.enc files per-file and log each one.
+        long nonEncCount = batchFiles.stream()
+            .filter(f -> !f.getName().endsWith(".enc"))
+            .count();
+        if (nonEncCount > 0) {
+            int choice = JOptionPane.showConfirmDialog(mainFrame,
+                nonEncCount + " queued file(s) do not have a .enc extension\n"
+                + "and will be skipped during Batch Decrypt.\n\n"
+                + "Continue with the remaining files?",
+                "Non-.enc Files in Queue",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (choice != JOptionPane.YES_OPTION) return;
+        }
+
+        // Validation: password is required
+        char[] password = passwordField.getPassword();
+        if (password.length == 0) {
+            showWarning("Please enter the password that was used to encrypt these files.");
+            return;
+        }
+
+        String algo = (String) algorithmDropdown.getSelectedItem();
+        progressBar.setValue(0); progressBar.setString("Batch Decrypt: 0%");
+        statusLabel.setText("Batch decrypting " + batchFiles.size() + " file(s)...");
+
+        // isEncrypt = false — BatchProcessor calls orchestrateDecrypt() per file
+        BatchProcessor processor = new BatchProcessor(
+            new ArrayList<>(batchFiles), password, algo, progressBar, logTextArea,
+            currentUser, false);
+        processor.addPropertyChangeListener(evt -> {
+            if ("state".equals(evt.getPropertyName())
+                    && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
+                batchFiles.clear();
+                batchListModel.clear();
+                statusLabel.setText("Batch decryption complete.");
+                refreshLogDisplay();
+            }
+        });
+        processor.execute();
+        // Clear the password field from the UI immediately.
+        // BatchProcessor now owns the char[] and will zero it inside done().
+        passwordField.setText("");
     }
 
     private void handleEscrowRecovery() {

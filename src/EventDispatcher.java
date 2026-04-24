@@ -4,7 +4,7 @@
 // Course: 2025CSET152 | Bennett University
 
 // How to compile and run:
-//   javac -d out src\*.java
+//   javac -encoding UTF-8 -d out src\*.java
 //   java -cp out MainApp
 
 import java.io.File;
@@ -29,6 +29,10 @@ public interface EventDispatcher {
     // Triggered when the user clicks Batch Encrypt
     // files = list of files to encrypt in one background operation
     void onBatchEncrypt(ArrayList<File> files, char[] password, String algorithm);
+
+    // Triggered when the user clicks Batch Decrypt
+    // files = list of .enc files to decrypt in one background operation
+    void onBatchDecrypt(ArrayList<File> files, char[] password, String algorithm);
 
     // Triggered when the user clicks Cloud Sync / Upload
     // encryptedFilePath = path to a .enc file only (plaintext rejected at CloudSyncManager)
